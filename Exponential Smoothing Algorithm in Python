@@ -1,0 +1,99 @@
+import csv
+import sys
+import os
+import matplotlib.pyplot as plt
+ls1=[]
+ls2=[]
+smooth=[]  
+agree="yes" 
+alpha=float(raw_input("Enter Alpha\n"))
+
+def csv_reader(file_obj):
+
+    reader = csv.reader(file_obj)
+    
+    for row in reader:
+        ls1.append(row[0])
+        ls2.append(row[1])
+       
+def draw_graph(ls1,ls2,expl_smooth,alpha,agree):
+    while agree=="yes":
+        plt.figure()
+        #plt.show()
+        message="Original Stock Price Plot for Alpha"+ " "+str(alpha)
+        plt.plot(ls1,ls2,label="Original Stock Price Plot",linewidth=2, markersize=12)
+        plt.plot(ls1,expl_smooth,label=message,linewidth=2, markersize=12)
+        plt.xlabel('Time Period')
+        plt.ylabel('Prices')
+        plt.title('Original and exponentially smoothen prices')
+        plt.legend()
+        plt.show()
+        agree=raw_input("Are you Satisfied with the smoothening Model? Enter yes/no\n")
+        if agree=="no":
+            alpha=float(raw_input("Enter Alpha\n"))
+            exp_smooth(ls1,ls2,alpha,agree)
+        else:
+            print "Graphs have been plotted"
+            break
+        
+def exp_smooth(ls1,ls2,alpha,agree):
+    smooth=[]
+    smooth.append(ls2[0])
+    i=len(ls2)
+    for x in range(1,i):
+        smooth.append(alpha*float(ls2[x-1])+(1-alpha)*float(smooth[x-1]))
+    agree="yes"
+    draw_graph(ls1,ls2,smooth,alpha,agree)
+
+def linear_reg(ls1,ls2):
+ 
+    # mean of 1st column consiting of numbers and 2nd column of share prices
+    #we will calculate mean of only 8 prices and will calculate 9th share price using model
+    m_x, m_y = find_avg(ls1), find_avg(ls2)
+ 
+    # calculating cross-deviation and deviation about x
+    SS_xy = cross_dev(ls1[:-1],ls2[:-1],m_x,m_y)
+    SS_xx = squared_dev(ls1[:-1],m_x)
+ 
+    # calculating regression coefficients
+    b1 = SS_xy / SS_xx
+    b0 = m_y - b1*m_x
+    return b0+b1*9
+
+def find_avg(ls1):
+    x=ls1[0:-1]
+    sum=0
+    i=0
+    for i in x:
+        sum=float(sum)+float(i)
+    return float(sum)/float(len(x))
+
+def cross_dev(list1,list2,m_x,m_y):
+    sum=0
+    x=list1
+    y=list2
+    
+    for i in range(0,len(x)):
+        sum=float(sum)+float((float(x[i])-float(m_x))*(float(y[i])-float(m_y)))
+    return float(sum)/float(len(x)-1)
+
+def squared_dev(list3,m_x):
+    sum=0
+    t=list3
+    for i in range(0,len(t)):
+        sum=float(sum)+((float(t[i])-float(m_x)**2))
+    return float(sum)/float(len(t)-1)
+
+
+if __name__ == "__main__":
+
+    csv_path = os.path.join(sys.path[0], "TSLAHistoricalQuotes.csv")
+   
+    with open(csv_path, "rb") as f_obj:
+
+        csv_reader(f_obj)
+    exp_smooth(ls1,ls2,alpha,agree)  
+    print "\nThis portion of the program will deal with linear regression and find out the 9th value of stock price\n"
+    #y=b0+b1*x where y is the stock price and x is the numbers in 1st column
+    share_price_8 = linear_reg(ls1,ls2)
+    print "Predicted price of share at time t=8 is {0}".format(share_price_8)
