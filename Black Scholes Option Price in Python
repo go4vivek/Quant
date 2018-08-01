@@ -1,0 +1,19 @@
+import numpy as np
+import decimal 
+import scipy.stats as si
+decimal.getcontext().prec=10
+undprice=float(input("Current Stock Price: " ))
+strike=float(input("Enter the strike price: "))
+rate=float(input("Enter the risk free rate: "))
+time=float(input("Enter the time to maturity: "))
+sigma=float(input("Enter the standard deviation: "))
+sigTsquared=sigma*np.sqrt(float(time))
+d1=(np.log(undprice/strike)+(rate+((sigma**2)/2))*time)/sigTsquared
+d2=d1-sigTsquared
+call=undprice*si.norm.cdf(d1,0.0,1.0)-strike*np.exp(-rate*time)*si.norm.cdf(d2,0.0,1.0)
+put=strike*np.exp(-rate*time)*si.norm.cdf(-d2,0.0,1.0)-undprice*si.norm.cdf(-d1,0.0,1.0)
+print("Price of put option is: %f" % put)
+print("Price of call option is: %f" % call)
+putcallparity=call+strike*np.exp(-rate*time)-put-undprice
+if putcallparity==0:
+    print("Put call parity validated")
