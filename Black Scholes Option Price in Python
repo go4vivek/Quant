@@ -1,3 +1,8 @@
+'''
+This script can be used for calculating theoretical prices for European call and Put Options. 
+A portion of script also checks if the call-put parity is validated or not.
+'''
+
 import numpy as np
 import decimal 
 import scipy.stats as si
