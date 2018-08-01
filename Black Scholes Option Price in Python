@@ -1,6 +1,7 @@
 '''
 This script can be used for calculating theoretical prices for European call and Put Options. 
 A portion of script also checks if the call-put parity is validated or not.
+Prices obtained with this script can be validated using an online source http://www.option-price.com/
 '''
 
 import numpy as np
