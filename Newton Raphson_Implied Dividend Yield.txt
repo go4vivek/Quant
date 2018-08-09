@@ -1,0 +1,44 @@
+
+Option Base 1
+Dim d1, d2, d3, d4, nd1, nd2, nd3, nd4, ert, eqt
+
+Function bsvalue_DIV(cp, S, K, v, r, T, q)
+
+d1 = ((Log(S / K) + (r - q + 0.5 * v ^ 2) * T) / (v * Sqr(T)))
+d2 = ((Log(S / K) + (r - q - 0.5 * v ^ 2) * T) / (v * Sqr(T)))
+nd1 = Application.NormSDist(d1)
+nd2 = Application.NormSDist(d2)
+ert = Exp(-r * T)
+eqt = Exp(-q * T)
+bscallvalue = (S * eqt * nd1 - K * ert * nd2)
+
+If cp = "Call" Then
+  bsvalue_DIV = bscallvalue
+Else
+   nd1 = Application.NormSDist(-d1)
+nd2 = Application.NormSDist(-d2)
+  bsvalue_DIV = (K * ert * nd2 - S * eqt * nd1)
+End If
+End Function
+
+
+Function NR_DIV(cp, S, K, v, r, T, optval, guess)
+    Dim epsilon As Double
+    delta_q = 0.001
+    epsilon = 0.00001
+    cur_q = guess
+    For i = 1 To 1000
+        fq = optval - bsvalue_DIV(cp, S, K, v, r, T, cur_q)
+        cur_q_delta = cur_q - delta_q
+        fq_delta = optval - bsvalue_DIV(cp, S, K, v, r, T, cur_q_delta)
+        dq = (fq - fq_delta) / delta_q
+        If (Abs(dq) < epsilon) Then
+            Exit For
+        Else
+        cur_q = cur_q - (fq / dq)
+        End If
+    Next i
+    NR_DIV = cur_q
+End Function
+
+
