@@ -1,0 +1,82 @@
+Sub calculate_gbm()
+
+' Below code is to speed up the process as macro will run on it's window rather switching back & forth between macro screen and excel sheet
+        
+        Application.ScreenUpdating = False
+        Application.EnableEvents = False
+        Application.Calculation = xlCalculationManual
+        ActiveSheet.DisplayPageBreaks = False
+
+' Change your worksheet name with the "Equity Movement Tab"
+
+With Worksheets("Equity Movement")
+
+' Variables for various calculations have been declared
+
+        Dim spot As Double
+        Dim rate As Double
+        Dim vol As Double
+        Dim maturity As Double
+        Dim delta As Double
+        Dim strike As Double
+        Dim ex_point As Double
+        Dim trials As Integer
+        Dim path As Integer
+        Dim drift As Double
+        Dim variance, variance2 As Double
+        Dim prev_price As Double
+        
+' Use below variables to create the dynamic matrix. This will also be used to create no of paths intended by you
+
+        Dim start_row As Integer
+        Dim end_row As Integer
+        Dim start_col As Integer
+        Dim end_col As Integer
+        
+'----------------------------------------------------------------------------------------------------
+        start_row = 28
+        start_col = 7
+        no_of_trials = 5000
+        tenor_len = 60
+        spot = Range("C3").Value      ' Here put the cell reference where the spot price is available
+        rate = Range("C4").Value      ' Here put the cell reference where the risk free rate is available
+        vol = Range("C5").Value       ' Here put the cell reference where the flat volatility is available
+        maturity = Range("C6").Value  ' Here put the cell reference where the maturity date is available
+        delta = Range("C7").Value     ' Delta is the smallest time interval for which price will be calculated
+        strike = Range("C8").Value    ' Here put the cell reference where the strike price is available
+        
+'----------------------------------------------------------------------------------------------
+       'Below variables are used for internal calculationsa and do not need to be changed by user
+        end_col = tenor_len + start_col
+        end_row = no_of_trials + start_row - 1
+        ex_point = 12 * maturity
+        Dim StartTime As Double
+        Dim SecondsElapsed As Double
+        StartTime = Timer
+        drift = (rate - 0.5 * (vol ^ 2)) * delta
+        variance = vol * (delta ^ 0.5)
+        Dim securities(5000, 60) As Double
+'----------------------------------------------------------------------------------------------
+     
+    For trials = 0 To 4999 Step 1
+        path = 0
+        securities(trials, 0) = spot
+        For path = 1 To 60 Step 1
+                variance2 = WorksheetFunction.NormSInv(Rnd()) * variance
+                securities(trials, path) = securities(trials, path - 1) * Exp(drift + variance2)
+        Next
+   Next
+
+
+  Range(Cells(start_row, start_col), Cells(end_row, end_col)).Value = securities
+  
+End With
+    Application.ScreenUpdating = True
+    Application.EnableEvents = True
+    Application.Calculation = xlCalculationAutomatic
+    ActiveSheet.DisplayPageBreaks = True
+    
+    SecondsElapsed = Round(Timer - StartTime, 2)
+    MsgBox "Simulation completed successfully in " & SecondsElapsed & " seconds", vbInformation
+
+End Sub
